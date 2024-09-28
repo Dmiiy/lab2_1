@@ -2,9 +2,11 @@
 #include <chrono>
 #include <complex>
 
-#include "../Shared_ptr.h"
-#include "../Weak_ptr.h"
-#include "../Unique_ptr.h"
+#include "C:\Users\dimak\CLionProjects\lab2_1\smrt_ptr\Control_Block.h"
+#include "C:\Users\dimak\CLionProjects\lab2_1\smrt_ptr\Weak_ptr.h"
+#include "C:\Users\dimak\CLionProjects\lab2_1\smrt_ptr\Unique_ptr.h"
+#include "C:\Users\dimak\CLionProjects\lab2_1\sequence\Sequence.h"
+#include "C:\Users\dimak\CLionProjects\lab2_1\sequence\LinkedListSequence.h"
 
 #include "lib/googletest/include/gtest/gtest.h"
 
@@ -237,3 +239,173 @@ TEST(Weak_ptr, LockReturnsNullptrWhenExpired) {
     Shared_ptr<int> locked = weakPtr.lock();
     EXPECT_EQ(locked.get(), nullptr);
 }
+
+// Тесты для LinkedList
+TEST(LinkedList, BasicOperations) {
+    LinkedList<int> list;
+    list.append(1);
+    list.append(2);
+    list.prepend(0);
+
+    ASSERT_EQ(list.getFirst(), 0);
+    ASSERT_EQ(list.getLast(), 2);
+    ASSERT_EQ(list.getLength(), 3);
+}
+
+TEST(LinkedList, InsertAt) {
+    LinkedList<int> list;
+    list.append(1);
+    list.append(3);
+    list.insertAt(2, 1);
+
+    ASSERT_EQ(list.get(0), 1);
+    ASSERT_EQ(list.get(1), 2);
+    ASSERT_EQ(list.get(2), 3);
+}
+
+TEST(LinkedList, RemoveAt) {
+    LinkedList<int> list;
+    list.append(1);
+    list.append(2);
+    list.append(3);
+    list.removeAt(1);
+
+    ASSERT_EQ(list.get(0), 1);
+    ASSERT_EQ(list.get(1), 3);
+    ASSERT_EQ(list.getLength(), 2);
+}
+
+TEST(LinkedList, GetSubList) {
+    int items[] = {1, 2, 3, 4, 5};
+    LinkedList<int> list(items, 5);
+    LinkedList<int> *subList = list.getSubList(1, 3);
+
+    ASSERT_EQ(subList->getLength(), 3);
+    ASSERT_EQ(subList->get(0), 2);
+    ASSERT_EQ(subList->get(2), 4);
+
+    delete subList; // не забываем очистить память
+}
+
+TEST(LinkedList, Concat) {
+    int items1[] = {1, 2, 3};
+    int items2[] = {4, 5};
+    LinkedList<int> list1(items1, 3);
+    LinkedList<int> list2(items2, 2);
+
+    LinkedList<int> *result = list1.concat(&list2);
+
+    ASSERT_EQ(result->getLength(), 8);
+    ASSERT_EQ(result->get(0), 1);
+    ASSERT_EQ(result->get(4), 5);
+
+    delete result;
+}
+
+//TEST(LinkedList, Iterator) {
+//    int items[] = {1, 2, 3, 4, 5};
+//    LinkedList<int> list(items, 5);
+//
+//    int index = 0;
+//    for (auto it = list.begin(); it != list.end(); ++it, ++index) {
+//        ASSERT_EQ(*it, items[index]);
+//    }
+//}
+
+// Тесты для LinkedListSequence
+TEST(LinkedListSequence, BasicOperations) {
+    LinkedListSequence<int> seq;
+    seq.append(1);
+    seq.append(2);
+    seq.prepend(0);
+
+    ASSERT_EQ(seq.getFirst(), 0);
+    ASSERT_EQ(seq.getLast(), 2);
+    ASSERT_EQ(seq.getLength(), 3);
+}
+
+TEST(LinkedListSequence, InsertAt) {
+    LinkedListSequence<int> seq;
+    seq.append(1);
+    seq.append(3);
+    seq.insertAt(2, 1);
+
+    ASSERT_EQ(seq.get(0), 1);
+    ASSERT_EQ(seq.get(1), 2);
+    ASSERT_EQ(seq.get(2), 3);
+}
+
+TEST(LinkedListSequence, RemoveAt) {
+    LinkedListSequence<int> seq;
+    seq.append(1);
+    seq.append(2);
+    seq.append(3);
+    seq.removeAt(1);
+
+    ASSERT_EQ(seq.get(0), 1);
+    ASSERT_EQ(seq.get(1), 3);
+    ASSERT_EQ(seq.getLength(), 2);
+}
+
+TEST(LinkedListSequence, GetSubsequence) {
+    int items[] = {1, 2, 3, 4, 5};
+    LinkedListSequence<int> seq(items, 5);
+    Sequence<int> *subSeq = seq.getSubsequence(1, 3);
+
+    ASSERT_EQ(subSeq->getLength(), 3);
+    ASSERT_EQ(subSeq->get(0), 2);
+    ASSERT_EQ(subSeq->get(2), 4);
+
+    delete subSeq;
+}
+
+TEST(LinkedListSequence, Concat) {
+    int items1[] = {1, 2, 3};
+    int items2[] = {4, 5};
+    LinkedListSequence<int> seq1(items1, 3);
+    LinkedListSequence<int> seq2(items2, 2);
+
+    Sequence<int> *result = seq1.concat(&seq2);
+
+    ASSERT_EQ(result->getLength(), 8);
+    ASSERT_EQ(result->get(0), 1);
+    ASSERT_EQ(result->get(4), 5);
+
+    delete result;
+}
+
+TEST(LinkedListSequence, Map) {
+    int items[] = {1, 2, 3, 4, 5};
+    LinkedListSequence<int> seq(items, 5);
+
+    Sequence<int> *mapped = seq.map([](int x) { return x * 2; });
+
+    ASSERT_EQ(mapped->get(0), 2);
+    ASSERT_EQ(mapped->get(4), 10);
+
+    delete mapped;
+}
+
+TEST(LinkedListSequence, Where) {
+    int items[] = {1, 2, 3, 4, 5};
+    LinkedListSequence<int> seq(items, 5);
+
+    Sequence<int> *filtered = seq.where([](int x) { return x % 2 == 0; });
+
+    ASSERT_EQ(filtered->getLength(), 2);
+    ASSERT_EQ(filtered->get(0), 2);
+    ASSERT_EQ(filtered->get(1), 4);
+
+    delete filtered;
+}
+
+TEST(LinkedListSequence, Reduce) {
+    int items[] = {1, 2, 3, 4, 5};
+    LinkedListSequence<int> seq(items, 5);
+
+    int result = seq.reduce([](int a, int b) { return a + b; });
+
+    ASSERT_EQ(result, 15);
+}
+
+
