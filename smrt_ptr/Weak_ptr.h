@@ -76,8 +76,12 @@ public:
     }
 
     void swap(Weak_ptr& other) {
-        std::swap(cb, other.cb);
-        std::swap(sp, other.sp);
+        Shared_ptr<T>* temp = sp;
+        sp = other.sp;
+        other.sp = temp;
+        Control_Block* temp2 = cb;
+        cb = other.cb;
+        other.cb = temp2;
     }
 
     unsigned int use_count() const {

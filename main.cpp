@@ -25,24 +25,26 @@ public:
         infoText.setFillColor(sf::Color::White);
         infoText.setPosition(20, 520);
 
+        sf::Color color(0,0,0);
         // Поле для ввода данных
         inputBox.setSize(sf::Vector2f(200, 30));
         inputBox.setPosition(20, 470);
         inputBox.setFillColor(sf::Color::White);
         inputText.setFont(font);
         inputText.setCharacterSize(18);
-        inputText.setFillColor(sf::Color::Black);
+        inputText.setFillColor(color);
         inputText.setPosition(25, 475);
 
         // Кнопки
-        setupButton(addStartButton, addStartText, "Add to Start", 20, 50);
-        setupButton(addEndButton, addEndText, "Add to End", 20, 100);
-        setupButton(insertButton, insertText, "Insert at Index", 20, 150);
-        setupButton(deleteButton, deleteText, "Delete at Index", 20, 200);
-        setupButton(getElementButton, getElementText, "Get Element by Index", 20, 250);
-        setupButton(displayButton, displayText, "Display List", 20, 300);
-        setupButton(clearButton, clearText, "Clear List", 20, 350);
-        setupButton(exitButton, exitText, "Exit", 20, 400);
+
+        setupButton(addStartButton, addStartText, "Add to Start", 30, 60);
+        setupButton(addEndButton, addEndText, "Add to End", 30, 110);
+        setupButton(insertButton, insertText, "Insert at Index", 30, 160);
+        setupButton(deleteButton, deleteText, "Delete at Index", 30, 210);
+        setupButton(getElementButton, getElementText, "Get Element", 30, 260);
+        setupButton(displayButton, displayText, "Display List", 30, 310);
+        setupButton(clearButton, clearText, "Clear List", 30, 360);
+        setupButton(exitButton, exitText, "Exit", 30, 410);
     }
 
     void run() {
@@ -72,7 +74,6 @@ private:
         sf::Color originalColor;
         sf::Color clickedColor;
     };
-
     std::map<sf::RectangleShape*, ButtonState> buttonStates;
 
     void processEvents() {
