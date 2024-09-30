@@ -1,277 +1,245 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
-#include <SFML/System.hpp>
-#include <SFML/Graphics/Text.hpp>
 #include <iostream>
-#include <memory>
+#include <sstream>
+#include <map>
+#include <chrono>
+#include <thread>
+#include "C:\Users\dimak\CLionProjects\lab2_1\sequence\LinkedList.h"  // Включаем вашу реализацию LinkedList
 
-using namespace sf;
+class GUI {
+public:
+    GUI() {
+        // Создание окна
+        window.create(sf::VideoMode(800, 600), "Linked List GUI");
+        window.setFramerateLimit(60);
 
-// Structure for storing data of a radio button
-struct RadioButton {
-    RectangleShape shape;
-    Text text;
-    bool selected;
-};
+        // Загрузка шрифта
+        if (!font.loadFromFile("C:\\Users\\dimak\\CLionProjects\\lab2_1\\fonts\\arial.ttf")) {
+            std::cerr << "Error loading font!" << std::endl;
+        }
 
-int main() {
-    // Initialize the window
-    RenderWindow window(VideoMode(800, 600), "SFML Radio Buttons and Smart Pointers");
+        // Настройка текста информации
+        infoText.setFont(font);
+        infoText.setCharacterSize(18);
+        infoText.setFillColor(sf::Color::White);
+        infoText.setPosition(20, 520);
 
-    // Load the font
-    Font font;
-    if (!font.loadFromFile("C:\\Users\\dimak\\CLionProjects\\lab2_1\\fonts\\arial.ttf")) { // Replace "arial.ttf" with your font
-        std::cerr << "Error loading font!" << std::endl;
-        return 1;
+        // Поле для ввода данных
+        inputBox.setSize(sf::Vector2f(200, 30));
+        inputBox.setPosition(20, 470);
+        inputBox.setFillColor(sf::Color::White);
+        inputText.setFont(font);
+        inputText.setCharacterSize(18);
+        inputText.setFillColor(sf::Color::Black);
+        inputText.setPosition(25, 475);
+
+        // Кнопки
+        setupButton(addStartButton, addStartText, "Add to Start", 20, 50);
+        setupButton(addEndButton, addEndText, "Add to End", 20, 100);
+        setupButton(insertButton, insertText, "Insert at Index", 20, 150);
+        setupButton(deleteButton, deleteText, "Delete at Index", 20, 200);
+        setupButton(getElementButton, getElementText, "Get Element by Index", 20, 250);
+        setupButton(displayButton, displayText, "Display List", 20, 300);
+        setupButton(clearButton, clearText, "Clear List", 20, 350);
+        setupButton(exitButton, exitText, "Exit", 20, 400);
     }
 
-    // Create radio buttons
-    RadioButton radioButtons[3];
-    radioButtons[0].shape.setSize(Vector2f(20, 20));
-    radioButtons[0].shape.setFillColor(Color::White);
-    radioButtons[0].shape.setOutlineColor(Color::Black);
-    radioButtons[0].shape.setOutlineThickness(1);
-    radioButtons[0].shape.setPosition(100, 50);
-    radioButtons[0].text.setFont(font);
-    radioButtons[0].text.setString("Option 1 (Unique_ptr)");
-    radioButtons[0].text.setCharacterSize(16);
-    radioButtons[0].text.setFillColor(Color::Black);
-    radioButtons[0].text.setPosition(radioButtons[0].shape.getPosition().x + radioButtons[0].shape.getSize().x + 10,
-                                     radioButtons[0].shape.getPosition().y);
-    radioButtons[0].selected = false;
+    void run() {
+        while (window.isOpen()) {
+            processEvents();
+            render();
+        }
+    }
 
-    radioButtons[1].shape.setSize(Vector2f(20, 20));
-    radioButtons[1].shape.setFillColor(Color::White);
-    radioButtons[1].shape.setOutlineColor(Color::Black);
-    radioButtons[1].shape.setOutlineThickness(1);
-    radioButtons[1].shape.setPosition(100, 100);
-    radioButtons[1].text.setFont(font);
-    radioButtons[1].text.setString("Option 2 (Shared_ptr)");
-    radioButtons[1].text.setCharacterSize(16);
-    radioButtons[1].text.setFillColor(Color::Black);
-    radioButtons[1].text.setPosition(radioButtons[1].shape.getPosition().x + radioButtons[1].shape.getSize().x + 10,
-                                     radioButtons[1].shape.getPosition().y);
-    radioButtons[1].selected = false;
+private:
+    sf::RenderWindow window;
+    sf::Font font;
+    sf::Text infoText;
+    sf::RectangleShape inputBox;
+    sf::Text inputText;
+    std::string userInput;
 
-    radioButtons[2].shape.setSize(Vector2f(20, 20));
-    radioButtons[2].shape.setFillColor(Color::White);
-    radioButtons[2].shape.setOutlineColor(Color::Black);
-    radioButtons[2].shape.setOutlineThickness(1);
-    radioButtons[2].shape.setPosition(100, 150);
-    radioButtons[2].text.setFont(font);
-    radioButtons[2].text.setString("Option 3 (Weak_ptr)");
-    radioButtons[2].text.setCharacterSize(16);
-    radioButtons[2].text.setFillColor(Color::Black);
-    radioButtons[2].text.setPosition(radioButtons[2].shape.getPosition().x + radioButtons[2].shape.getSize().x + 10,
-                                     radioButtons[2].shape.getPosition().y);
-    radioButtons[2].selected = false;
+    // Кнопки и текст кнопок
+    sf::RectangleShape addStartButton, addEndButton, insertButton, deleteButton, getElementButton, displayButton, clearButton, exitButton;
+    sf::Text addStartText, addEndText, insertText, deleteText, getElementText, displayText, clearText, exitText;
 
-    // Create input field
-    RectangleShape inputField(Vector2f(200, 30));
-    inputField.setFillColor(Color::White);
-    inputField.setOutlineColor(Color::Black);
-    inputField.setOutlineThickness(1);
-    inputField.setPosition(100, 200);
+    LinkedList<int> list;  // Экземпляр вашего списка
 
-    Text inputText;
-    inputText.setFont(font);
-    inputText.setString("Enter a number");
-    inputText.setCharacterSize(16);
-    inputText.setFillColor(Color::Black);
-    inputText.setPosition(inputField.getPosition().x + 5, inputField.getPosition().y + 5);
+    // Структура для хранения состояния кнопок
+    struct ButtonState {
+        bool isClicked = false;
+        sf::Color originalColor;
+        sf::Color clickedColor;
+    };
 
-    // Create "Create" button
-    RectangleShape createButton(Vector2f(100, 30));
-    createButton.setFillColor(Color::Green);
-    createButton.setOutlineColor(Color::Black);
-    createButton.setOutlineThickness(1);
-    createButton.setPosition(350, 200);
+    std::map<sf::RectangleShape*, ButtonState> buttonStates;
 
-    Text createText;
-    createText.setFont(font);
-    createText.setString("Create");
-    createText.setCharacterSize(16);
-    createText.setFillColor(Color::White);
-    createText.setPosition(createButton.getPosition().x + 25, createButton.getPosition().y + 5);
-
-    // Create "Delete" button
-    RectangleShape deleteButton(Vector2f(100, 30));
-    deleteButton.setFillColor(Color::Red);
-    deleteButton.setOutlineColor(Color::Black);
-    deleteButton.setOutlineThickness(1);
-    deleteButton.setPosition(350, 250);
-
-    Text deleteText;
-    deleteText.setFont(font);
-    deleteText.setString("Delete");
-    deleteText.setCharacterSize(16);
-    deleteText.setFillColor(Color::White);
-    deleteText.setPosition(deleteButton.getPosition().x + 25, deleteButton.getPosition().y + 5);
-
-    // Create output information window
-    RectangleShape outputWindow(Vector2f(400, 100));
-    outputWindow.setFillColor(Color::White);
-    outputWindow.setOutlineColor(Color::Black);
-    outputWindow.setOutlineThickness(1);
-    outputWindow.setPosition(100, 300);
-
-    Text outputText;
-    outputText.setFont(font);
-    outputText.setString("Information will be displayed here.");
-    outputText.setCharacterSize(16);
-    outputText.setFillColor(Color::Black);
-    outputText.setPosition(outputWindow.getPosition().x + 5, outputWindow.getPosition().y + 5);
-
-    // Variables for storing data
-    std::string inputValue;
-    std::shared_ptr<int> sharedPtr;
-    std::unique_ptr<int> uniquePtr;
-    std::weak_ptr<int> weakPtr;
-
-    // Timer for button click effect
-    Clock buttonClickTimer;
-    float buttonClickDuration = 0.2f; // Duration of the button click effect in seconds
-
-    // Main game loop
-    while (window.isOpen()) {
-        Event event;
-        sf::Color LightGreen(0, 238, 144);
-        sf::Color LightRed(2, 71, 76);
-        sf::Color LightGray(1, 211, 211);
+    void processEvents() {
+        sf::Event event;
         while (window.pollEvent(event)) {
-            if (event.type == Event::Closed) {
+            if (event.type == sf::Event::Closed) {
                 window.close();
             }
 
-            // Handle mouse click events
-            if (event.type == Event::MouseButtonPressed) {
-                // Check if any radio button is clicked
-                for (int i = 0; i < 3; ++i) {
-                    if (radioButtons[i].shape.getGlobalBounds().contains(event.mouseButton.x, event.mouseButton.y)) {
-                        // Deselect other radio buttons
-                        for (int j = 0; j < 3; ++j) {
-                            radioButtons[j].selected = (i == j);
-                        }
-                        // Mark the selected button
-                        radioButtons[i].shape.setFillColor(LightGray);
-                    } else {
-                        // Reset the color of unselected radio buttons
-                        radioButtons[i].shape.setFillColor(Color::White);
-                    }
+            if (event.type == sf::Event::TextEntered) {
+                if (event.text.unicode == '\b') {
+                    if (!userInput.empty())
+                        userInput.pop_back();
+                } else if (event.text.unicode < 128) {
+                    userInput += static_cast<char>(event.text.unicode);
                 }
-
-                // Check if the "Create" button is clicked
-                if (createButton.getGlobalBounds().contains(event.mouseButton.x, event.mouseButton.y)) {
-                    // Start button click timer
-                    buttonClickTimer.restart();
-                    // Set the button color to light green
-                    createButton.setFillColor(LightGreen);
-
-                    // Check if a radio button is selected
-                    bool selected = false;
-                    for (int i = 0; i < 3; ++i) {
-                        if (radioButtons[i].selected) {
-                            selected = true;
-                            break;
-                        }
-                    }
-
-                    // Check if the input value is a valid number
-                    bool validInput = true;
-                    try {
-                        int number = std::stoi(inputValue);
-                    } catch (const std::exception& e) {
-                        validInput = false;
-                    }
-
-                    if (selected && validInput) {
-                        try {
-                            int number = std::stoi(inputValue);
-                            if (radioButtons[0].selected) {
-                                uniquePtr.reset(new int(number));
-                                outputText.setString("Unique pointer created.");
-                            } else if (radioButtons[1].selected) {
-                                sharedPtr.reset(new int(number));
-                                outputText.setString("Shared pointer created.");
-                            } else if (radioButtons[2].selected) {
-                                weakPtr = std::weak_ptr<int>(sharedPtr); // Example of using Weak_ptr
-                                outputText.setString("Weak pointer created.");
-                            }
-                        } catch (const std::exception& e) {
-                            outputText.setString("Error creating a pointer.");
-                        }
-                    } else if (!selected) {
-                        outputText.setString("Select a pointer type.");
-                    } else if (!validInput) {
-                        outputText.setString("Enter a valid number.");
-                    }
-                }
-
-                // Check if the "Delete" button is clicked
-                if (deleteButton.getGlobalBounds().contains(event.mouseButton.x, event.mouseButton.y)) {
-                    // Start button click timer
-                    buttonClickTimer.restart();
-                    // Set the button color to light red
-                    deleteButton.setFillColor(LightRed);
-                    uniquePtr.reset();
-                    sharedPtr.reset();
-                    weakPtr.reset();
-                    outputText.setString("Memory successfully cleared.");
-
-                    // ... (rest of the delete button logic) ...
-                }
+                inputText.setString(userInput);
             }
 
-            // Handle keyboard input events
-            if (event.type == Event::TextEntered) {
-                // Input text into the input field
-                if (event.text.unicode >= '0' && event.text.unicode <= '9' || event.text.unicode == '-') {
-                    inputValue += static_cast<char>(event.text.unicode);
-                    inputText.setString(inputValue);
-                } else if (event.text.unicode == '\b' && !inputValue.empty()) {
-                    inputValue.pop_back();
-                    inputText.setString(inputValue);
+            if (event.type == sf::Event::MouseButtonPressed) {
+                if (isButtonClicked(addStartButton, event.mouseButton.x, event.mouseButton.y)) {
+                    handleAddToStart();
+                    changeButtonColor(addStartButton, sf::Color::Green);
+                } else if (isButtonClicked(addEndButton, event.mouseButton.x, event.mouseButton.y)) {
+                    handleAddToEnd();
+                    changeButtonColor(addEndButton, sf::Color::Green);
+                } else if (isButtonClicked(insertButton, event.mouseButton.x, event.mouseButton.y)) {
+                    handleInsertAtIndex();
+                    changeButtonColor(insertButton, sf::Color::Green);
+                } else if (isButtonClicked(deleteButton, event.mouseButton.x, event.mouseButton.y)) {
+                    handleDeleteAtIndex();
+                    changeButtonColor(deleteButton, sf::Color::Green);
+                } else if (isButtonClicked(getElementButton, event.mouseButton.x, event.mouseButton.y)) {
+                    handleGetElementAtIndex();
+                    changeButtonColor(getElementButton, sf::Color::Green);
+                } else if (isButtonClicked(displayButton, event.mouseButton.x, event.mouseButton.y)) {
+                    handleDisplayList();
+                    changeButtonColor(displayButton, sf::Color::Green);
+                } else if (isButtonClicked(clearButton, event.mouseButton.x, event.mouseButton.y)) {
+                    handleClearList();
+                    changeButtonColor(clearButton, sf::Color::Green);
+                } else if (isButtonClicked(exitButton, event.mouseButton.x, event.mouseButton.y)) {
+                    window.close();
                 }
             }
         }
+    }
 
-        // Update button colors based on click timer
-        float clickTime = buttonClickTimer.getElapsedTime().asSeconds();
-        if (clickTime < buttonClickDuration) {
-            // If the timer is less than the duration, keep the button color changed
+    void setupButton(sf::RectangleShape &button, sf::Text &buttonText, const std::string &text, float x, float y) {
+        button.setSize(sf::Vector2f(150, 30));
+        button.setPosition(x, y);
+        button.setFillColor(sf::Color::Blue);
 
-            if (createButton.getFillColor() == LightGreen) {
-                createButton.setFillColor(Color::Green); // Reset to original green
-            } else if (deleteButton.getFillColor() == LightRed) {
-                deleteButton.setFillColor(Color::Red); // Reset to original red
-            }
+        buttonText.setFont(font);
+        buttonText.setString(text);
+        buttonText.setCharacterSize(16);
+        buttonText.setFillColor(sf::Color::White);
+        buttonText.setPosition(x + 10, y + 5);
+
+        // Запоминаем состояние кнопки
+        buttonStates[&button] = { false, sf::Color::Blue, sf::Color::Green };
+    }
+
+    bool isButtonClicked(const sf::RectangleShape &button, float x, float y) {
+        return button.getGlobalBounds().contains(x, y);
+    }
+
+    void changeButtonColor(sf::RectangleShape &button, const sf::Color &color) {
+        button.setFillColor(color);
+
+        // Запускаем поток для возврата цвета через 300 мс
+        std::thread([this, &button]() {
+            std::this_thread::sleep_for(std::chrono::milliseconds(300));
+            button.setFillColor(buttonStates[&button].originalColor);
+        }).detach();
+    }
+
+    void handleAddToStart() {
+        int value = std::stoi(userInput);
+        list.prepend(value);
+        infoText.setString("Element added to start");
+        userInput.clear();
+        inputText.setString(userInput);
+    }
+
+    void handleAddToEnd() {
+        int value = std::stoi(userInput);
+        list.append(value);
+        infoText.setString("Element added to end");
+        userInput.clear();
+        inputText.setString(userInput);
+    }
+
+    void handleInsertAtIndex() {
+        std::istringstream iss(userInput);
+        int value, index;
+        iss >> value >> index;
+        list.insertAt(value, index);
+        infoText.setString("Element inserted at index " + std::to_string(index));
+        userInput.clear();
+        inputText.setString(userInput);
+    }
+
+    void handleDeleteAtIndex() {
+        int index = std::stoi(userInput);
+        list.removeAt(index);
+        infoText.setString("Element at index " + std::to_string(index) + " deleted");
+        userInput.clear();
+        inputText.setString(userInput);
+    }
+
+    void handleGetElementAtIndex() {
+        int index = std::stoi(userInput);
+        int value = list.get(index);
+        infoText.setString("Element at index " + std::to_string(index) + ": " + std::to_string(value));
+        userInput.clear();
+        inputText.setString(userInput);
+    }
+
+    void handleDisplayList() {
+        std::ostringstream oss;
+        oss << "List: [";
+        for (int i = 0; i < list.getLength(); i++) {
+            oss << list.get(i);
+            if (i < list.getLength() - 1)
+                oss << ", ";
         }
+        oss << "]";
+        infoText.setString(oss.str());
+    }
 
+    void handleClearList() {
+        list.clear();
+        infoText.setString("List cleared");
+    }
 
-        // Clear the window
-        window.clear(Color::White);
+    void render() {
+        window.clear(sf::Color::Black);
 
-        // Draw elements
-        for (int i = 0; i < 3; ++i) {
-            window.draw(radioButtons[i].shape);
-            window.draw(radioButtons[i].text);
-        }
+        // Рисование кнопок
+        drawButton(addStartButton, addStartText);
+        drawButton(addEndButton, addEndText);
+        drawButton(insertButton, insertText);
+        drawButton(deleteButton, deleteText);
+        drawButton(getElementButton, getElementText);
+        drawButton(displayButton, displayText);
+        drawButton(clearButton, clearText);
+        drawButton(exitButton, exitText);
 
-        window.draw(inputField);
+        // Поле ввода
+        window.draw(inputBox);
         window.draw(inputText);
 
-        window.draw(createButton);
-        window.draw(createText);
+        // Вывод информации
+        window.draw(infoText);
 
-        window.draw(deleteButton);
-        window.draw(deleteText);
-
-        window.draw(outputWindow);
-        window.draw(outputText);
-
-        // Update the window
         window.display();
     }
 
+    void drawButton(sf::RectangleShape &button, sf::Text &buttonText) {
+        window.draw(button);
+        window.draw(buttonText);
+    }
+};
+
+int main() {
+    GUI gui;
+    gui.run();
     return 0;
 }

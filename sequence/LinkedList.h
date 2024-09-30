@@ -47,6 +47,12 @@ public:
         return last->value;
     }
 
+    void clear() {
+        first = nullptr;  // Устанавливаем указатель на первый элемент в nullptr
+        last = nullptr;   // Устанавливаем указатель на последний элемент в nullptr
+        size = 0;        // Сбрасываем размер списка на 0
+    }
+
     T &get(int index) const {
         if (index < 0 || index >= size)
             throw IndexOutOfRange("Index out of range");
@@ -168,36 +174,36 @@ public:
         size--;
     }
 
-//    struct Iterator {
-//        Shared_ptr<Node> m_ptr;
-//
-//        Iterator(Shared_ptr<Node> ptr) : m_ptr(ptr) {}
-//
-//        T &operator*() const {
-//            return m_ptr->value;
-//        }
-//        const T& get(int index) const {
-//            // Ваш текущий код для поиска элемента
-//            return m_ptr->value;
-//        }
-//
-//        Iterator &operator++() {
-//            m_ptr = m_ptr->next;
-//            return *this;
-//        }
-//
-//        bool operator!=(const Iterator &other) const {
-//            return m_ptr.get() != other.m_ptr.get();
-//        }
-//    };
-//
-//    Iterator begin() const {
-//        return Iterator(first);
-//    }
-//
-//    Iterator end() const {
-//        return Iterator(nullptr);
-//    }
+    struct Iterator {
+        Shared_ptr<Node> m_ptr;
+
+        Iterator(Shared_ptr<Node> ptr) : m_ptr(ptr) {}
+
+        T &operator*() const {
+            return m_ptr->value;
+        }
+        const T& get(int index) const {
+            // Ваш текущий код для поиска элемента
+            return m_ptr->value;
+        }
+
+        Iterator &operator++() {
+            m_ptr = m_ptr->next;
+            return *this;
+        }
+
+        bool operator!=(const Iterator &other) const {
+            return m_ptr.get() != other.m_ptr.get();
+        }
+    };
+
+    Iterator begin() const {
+        return Iterator(first);
+    }
+
+    Iterator end() const {
+        return Iterator(nullptr);
+    }
 };
 
 #endif

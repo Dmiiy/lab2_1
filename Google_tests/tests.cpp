@@ -2,7 +2,6 @@
 #include <chrono>
 #include <complex>
 
-#include "C:\Users\dimak\CLionProjects\lab2_1\smrt_ptr\Control_Block.h"
 #include "C:\Users\dimak\CLionProjects\lab2_1\smrt_ptr\Weak_ptr.h"
 #include "C:\Users\dimak\CLionProjects\lab2_1\smrt_ptr\Unique_ptr.h"
 #include "C:\Users\dimak\CLionProjects\lab2_1\sequence\Sequence.h"
@@ -301,16 +300,6 @@ TEST(LinkedList, Concat) {
 
     delete result;
 }
-
-//TEST(LinkedList, Iterator) {
-//    int items[] = {1, 2, 3, 4, 5};
-//    LinkedList<int> list(items, 5);
-//
-//    int index = 0;
-//    for (auto it = list.begin(); it != list.end(); ++it, ++index) {
-//        ASSERT_EQ(*it, items[index]);
-//    }
-//}
 
 // Тесты для LinkedListSequence
 TEST(LinkedListSequence, BasicOperations) {
